@@ -1,0 +1,35 @@
+{
+  "name": "github-readme-stats-action",
+  "version": "0.1.0",
+  "description": "Generate GitHub Readme Stats cards in GitHub Actions",
+  "type": "module",
+  "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319",
+  "license": "MIT",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest",
+    "prepare": "husky",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint:knip": "knip"
+  },
+  "dependencies": {
+    "@actions/core": "^3.0.1",
+    "@stats-organization/github-readme-stats-core": "2.1.2",
+    "octokit": "^5.0.5"
+  },
+  "devDependencies": {
+    "husky": "9.1.7",
+    "knip": "6.7.0",
+    "lint-staged": "16.4.0",
+    "prettier": "3.8.3",
+    "vitest": "4.1.5"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,css,json,jsonc,yaml,yml}": "prettier --write"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
