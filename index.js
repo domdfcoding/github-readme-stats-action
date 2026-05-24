@@ -236,9 +236,13 @@ const run = async () => {
       throw new Error("Card renderer returned empty output.");
     }
 
-    await writeFile(outputPath, svg, "utf8");
-    info(`Wrote ${outputPath}`);
-
+    if (svg.status !== "success") {
+      info(`Encountered ${svg.status}`);
+      // TODO: surface the full error message
+    } else {
+      await writeFile(outputPath, svg, "utf8");
+      info(`Wrote ${outputPath}`);
+    }
 
   })
 
