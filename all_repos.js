@@ -1,13 +1,15 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-
-import { getInput, info, setFailed, setOutput } from "@actions/core";
 import { parseOptions, validateCoreVersion, loadCoreModule, createCardHandlers, validateCardOptions } from "./core.js";
 
+import { getInput, info, setOutput } from "@actions/core";
+
 const run = async () => {
-  const card = getInput("card", { required: true }).toLowerCase();
+  const card = "pin";
+  const optionsUser = getInput("user", { required: true });
+  const optionsRepo = getInput("repo", { required: true });
   const optionsInput = getInput("options") || "";
-  const outputPathInput = getInput("path");
+  const outputPathInput = getInput("path") || "output";
   const coreVersion = validateCoreVersion(getInput("core_version") || "");
 
   const coreModule = await loadCoreModule(coreVersion);
@@ -20,11 +22,13 @@ const run = async () => {
   }
 
   const query = parseOptions(optionsInput);
+  query["repo"] = optionsRepo;
+  query["username"] = optionsUser;
 
   validateCardOptions(card, query, process.env.GITHUB_REPOSITORY_OWNER);
 
   const outputPathValue =
-    outputPathInput || path.join("profile", `${card}.svg`);
+    path.join(outputPathInput, optionsUser, `${optionsRepo}.svg`);
   const outputPath = path.resolve(process.cwd(), outputPathValue);
   await mkdir(path.dirname(outputPath), { recursive: true });
 
@@ -38,6 +42,7 @@ const run = async () => {
   setOutput("path", outputPathValue);
 };
 
-run().catch((error) => {
-  setFailed(error instanceof Error ? error.message : String(error));
-});
+run()
+// .catch((error) => {
+//   setFailed(error instanceof Error ? error.message : String(error));
+// });
