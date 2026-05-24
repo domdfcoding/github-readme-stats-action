@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "@actions/core": "^3.0.1",
-    "@stats-organization/github-readme-stats-core": "2.1.2"
+    "@stats-organization/github-readme-stats-core": "2.1.2",
+    "octokit": "^5.0.5"
   },
   "devDependencies": {
     "husky": "9.1.7",
