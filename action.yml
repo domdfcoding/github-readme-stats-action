@@ -2,15 +2,15 @@ name: GitHub Readme Stats Action
 description: Generate GitHub Readme Stats cards in GitHub Actions.
 author: stats-organization
 inputs:
-  card:
-    description: Card type to generate (stats, top-langs, pin, wakatime, gist).
+  username:
+    description: The GitHub user or organisation to generate cards for.
     required: true
   options:
     description: Options for the card (query string or JSON).
     required: false
     default: ""
   path:
-    description: Output path for SVG file (relative path; include filename with .svg).
+    description: Output path for SVG files (relative path).
     required: false
     default: ""
   token:
@@ -23,7 +23,7 @@ inputs:
     default: "v2"
 outputs:
   path:
-    description: Path where the SVG file was written.
+    description: Path where the SVG files were written.
     value: ${{ steps.generate.outputs.path }}
 runs:
   using: composite
@@ -44,7 +44,7 @@ runs:
       # --prod skips devDependencies (husky, vitest, etc.); --ignore-scripts skips the
       # husky prepare hook, which would otherwise fail since husky isn't installed.
       # https://github.com/stats-organization/github-readme-stats-action/issues/63
-      run: pnpm install --frozen-lockfile --prod --ignore-scripts
+      run: pnpm install --no-frozen-lockfile --prod --ignore-scripts
       shell: bash
       working-directory: ${{ github.action_path }}
     - name: Generate card
@@ -52,7 +52,7 @@ runs:
       run: node ${{ github.action_path }}/index.js
       shell: bash
       env:
-        INPUT_CARD: ${{ inputs.card }}
+        INPUT_USER: ${{ inputs.username }}
         INPUT_OPTIONS: ${{ inputs.options }}
         INPUT_PATH: ${{ inputs.path }}
         INPUT_CORE_VERSION: ${{ inputs.core_version }}

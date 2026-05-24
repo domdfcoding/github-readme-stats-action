@@ -6,6 +6,8 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 
+import { Octokit } from "octokit";
+import { getConfig } from "@stats-organization/github-readme-stats-core"
 import { getInput, info, setFailed, setOutput, warning } from "@actions/core";
 
 const execAsync = promisify(exec);
@@ -180,37 +182,70 @@ const validateCardOptions = (card, query, repoOwner) => {
 };
 
 const run = async () => {
-  const card = getInput("card", { required: true }).toLowerCase();
+  const card = "pin";
+  const optionsUser = getInput("user", { required: true });
   const optionsInput = getInput("options") || "";
-  const outputPathInput = getInput("path");
+  const outputPathInput = getInput("path") || "output";
   const coreVersion = validateCoreVersion(getInput("core_version") || "");
 
-  const coreModule = await loadCoreModule(coreVersion);
-
-  // Map of card types to their respective API handlers.
-  const cardHandlers = createCardHandlers(coreModule);
-  const handler = cardHandlers[card];
-  if (!handler) {
-    throw new Error(`Unsupported card type: ${card}`);
+  const safePattern = /^[-\w/.,]+$/;
+  if (optionsUser && !safePattern.test(optionsUser)) {
+    throw "Username contains unsafe characters";
   }
 
-  const query = parseOptions(optionsInput);
+  const config = getConfig()
 
-  validateCardOptions(card, query, process.env.GITHUB_REPOSITORY_OWNER);
+  const octokit = new Octokit({
+    auth: config.pats[0].value,
+  });
 
-  const outputPathValue =
-    outputPathInput || path.join("profile", `${card}.svg`);
-  const outputPath = path.resolve(process.cwd(), outputPathValue);
-  await mkdir(path.dirname(outputPath), { recursive: true });
+  const data = await octokit.paginate("GET /users/{owner}/repos", {
+    owner: optionsUser,
+    per_page: 100,
+    headers: {
+      "x-github-api-version": "2026-03-10",
+    },
+  });
+  console.log(`${data.length} repositories were returned`)
 
-  const svg = (await handler(query))?.content;
-  if (!svg) {
-    throw new Error("Card renderer returned empty output.");
-  }
+  data.forEach(async (repo) => {
+    console.log(repo.name)
 
-  await writeFile(outputPath, svg, "utf8");
-  info(`Wrote ${outputPath}`);
-  setOutput("path", outputPathValue);
+    const optionsRepo = repo.name
+
+    const coreModule = await loadCoreModule(coreVersion);
+
+    // Map of card types to their respective API handlers.
+    const cardHandlers = createCardHandlers(coreModule);
+    const handler = cardHandlers[card];
+    if (!handler) {
+      throw new Error(`Unsupported card type: ${card}`);
+    }
+
+    const query = parseOptions(optionsInput);
+    query["repo"] = optionsRepo;
+    query["username"] = optionsUser;
+
+    validateCardOptions(card, query, process.env.GITHUB_REPOSITORY_OWNER);
+
+    const outputPathValue =
+      path.join(outputPathInput, optionsUser, `${optionsRepo}.svg`);
+    const outputPath = path.resolve(process.cwd(), outputPathValue);
+    await mkdir(path.dirname(outputPath), { recursive: true });
+
+    const svg = (await handler(query))?.content;
+    if (!svg) {
+      throw new Error("Card renderer returned empty output.");
+    }
+
+    await writeFile(outputPath, svg, "utf8");
+    info(`Wrote ${outputPath}`);
+
+
+  })
+
+  setOutput("path", outputPathInput);
+
 };
 
 run().catch((error) => {
