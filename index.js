@@ -209,8 +209,6 @@ const run = async () => {
   console.log(`${data.length} repositories were returned`)
 
   data.forEach(async (repo) => {
-    console.log(repo.name)
-
     const optionsRepo = repo.name
 
     const coreModule = await loadCoreModule(coreVersion);
