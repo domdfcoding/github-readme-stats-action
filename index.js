@@ -231,7 +231,7 @@ const run = async () => {
     const outputPath = path.resolve(process.cwd(), outputPathValue);
     await mkdir(path.dirname(outputPath), { recursive: true });
 
-    const svg = (await handler(query))?.content;
+    const svg = (await handler(query));
     if (!svg) {
       throw new Error("Card renderer returned empty output.");
     }
@@ -240,7 +240,7 @@ const run = async () => {
       info(`Encountered ${svg.status}`);
       // TODO: surface the full error message
     } else {
-      await writeFile(outputPath, svg, "utf8");
+      await writeFile(outputPath, svg.content, "utf8");
       info(`Wrote ${outputPath}`);
     }
 
